@@ -1,0 +1,38 @@
+{
+  "name": "model-census",
+  "version": "0.1.0",
+  "description": "Which AI models does this codebase reference, and where do their weights come from? Offline scan of code, config, SDKs and local models, with DeepSeek/derivative detection and CycloneDX 1.6 output.",
+  "type": "module",
+  "bin": {
+    "model-census": "bin/model-census.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/census.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ai-bom",
+    "aibom",
+    "cyclonedx",
+    "model-provenance",
+    "deepseek",
+    "llm",
+    "supply-chain",
+    "compliance",
+    "gguf",
+    "huggingface"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thinx-pro/model-census.git"
+  }
+}

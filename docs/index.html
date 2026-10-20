@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>model-census</title>
+<meta name="description" content="Which AI models does your code reference, and whose weights are they built on? Paste code or a Hugging Face model id. Runs in your browser.">
+<style>
+:root {
+  --bg: #f7f7f5; --panel: #ffffff; --ink: #1c1d1f; --muted: #66676b; --line: #e3e3df;
+  --accent: #2f5bd3; --bad: #c2362f; --bad-bg: #fdeeed; --warn: #9a6200; --warn-bg: #fff5e0; --ok: #2c7a4b;
+  --chip: #f0f0ec; --code: #f3f3f0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131416; --panel: #1b1c1f; --ink: #e8e8e6; --muted: #9a9b9f; --line: #2c2d31;
+    --accent: #7ea2ff; --bad: #ff7b72; --bad-bg: #3a1d1c; --warn: #f0b75a; --warn-bg: #36290f; --ok: #6fd39a;
+    --chip: #26272b; --code: #222327;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131416; --panel: #1b1c1f; --ink: #e8e8e6; --muted: #9a9b9f; --line: #2c2d31;
+  --accent: #7ea2ff; --bad: #ff7b72; --bad-bg: #3a1d1c; --warn: #f0b75a; --warn-bg: #36290f; --ok: #6fd39a;
+  --chip: #26272b; --code: #222327;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h1 span { color: var(--muted); font-weight: 500; font-size: 15px; margin-left: 6px; }
+.lede { color: var(--muted); margin: 0 0 24px; max-width: 720px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; font: inherit; color: var(--muted); cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+textarea, input[type=text] { width: 100%; background: var(--code); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+textarea { min-height: 190px; resize: vertical; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 12px 0 0; }
+.row label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 14px; }
+button.primary { background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+button.link { background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; padding: 0; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 8px; }
+.chip { background: var(--chip); border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+.chip b { font-variant-numeric: tabular-nums; }
+.chip.bad { background: var(--bad-bg); color: var(--bad); }
+.verdict { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; font-weight: 600; }
+.verdict.bad { background: var(--bad-bg); color: var(--bad); }
+.verdict.ok { color: var(--ok); background: var(--chip); }
+.tablewrap { overflow-x: auto; margin-top: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+td code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+tr.denied td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+.flag { display: inline-block; background: var(--warn-bg); color: var(--warn); border-radius: 4px; padding: 0 6px; font-size: 12px; margin: 2px 4px 0 0; }
+.note { color: var(--muted); font-size: 12.5px; }
+.tree { list-style: none; padding: 0; margin: 16px 0 0; }
+.tree li { position: relative; padding: 10px 12px 10px 14px; border: 1px solid var(--line); border-radius: 8px; margin: 0 0 10px; background: var(--panel); }
+.tree li.child { margin-left: calc(var(--depth) * 22px); }
+.tree li.hit { border-color: var(--bad); }
+.tree .id { font: 600 13.5px ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+.tree .meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.examples { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.examples button { margin-right: 10px; }
+footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
+footer a, .lede a { color: var(--accent); }
+.hidden { display: none; }
+main, .panel, .tablewrap { min-width: 0; max-width: 100%; }
+.lede code { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  main { padding-top: 20px; }
+  .panel { padding: 12px; }
+  th:nth-child(1), td:nth-child(1), th:nth-child(4), td:nth-child(4) { display: none; }
+  .tree li.child { margin-left: calc(var(--depth) * 12px); }
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>model-census <span>0.1.0</span></h1>
+  <p class="lede">Which AI models does your code reference, and whose weights are they built on? Paste code or config, or trace a Hugging Face model's declared lineage. Distilled and fine-tuned derivatives count, so <code>deepseek-r1-distill-llama-70b</code> shows up as DeepSeek&nbsp;+&nbsp;Meta. The CLI does the same for a whole repo: <code>npx github:thinx-pro/model-census</code>.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-code" aria-selected="true" aria-controls="pane-code">Scan code</button>
+    <button role="tab" id="tab-hf" aria-selected="false" aria-controls="pane-hf">Trace a Hugging Face model</button>
+  </div>
+
+  <section id="pane-code" role="tabpanel" class="panel">
+    <textarea id="code" spellcheck="false" aria-label="Code or config to scan"></textarea>
+    <div class="row">
+      <label><input type="checkbox" id="deny-deepseek" checked> Flag anything that traces back to DeepSeek</label>
+      <span class="note">Runs locally in this page. Nothing is uploaded.</span>
+    </div>
+    <div id="code-out"></div>
+  </section>
+
+  <section id="pane-hf" role="tabpanel" class="panel hidden">
+    <div class="row" style="margin-top:0">
+      <input type="text" id="hfid" placeholder="org/model, e.g. bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF" aria-label="Hugging Face model id" style="flex:1;min-width:220px">
+      <button class="primary" id="trace">Trace</button>
+    </div>
+    <div class="examples">Try:
+      <button class="link" data-id="huihui-ai/DeepSeek-R1-Distill-Qwen-7B-abliterated-v2">an abliterated R1 distill</button>
+      <button class="link" data-id="agentica-org/DeepCoder-14B-Preview">DeepCoder-14B</button>
+      <button class="link" data-id="unsloth/Llama-3.2-3B-Instruct-GGUF">a Llama quant</button>
+    </div>
+    <p class="note">Sends the model ids to the public Hugging Face API (huggingface.co) from your browser. Lineage is what uploaders declared in <code>base_model</code>; the tokenizer check looks for DeepSeek's special tokens, which survive renaming.</p>
+    <div id="hf-out"></div>
+  </section>
+
+  <footer>
+    Static scan of references, not proof of runtime traffic. Unknown ids are not counted. Source, CLI, CycloneDX 1.6 output and limitations: <a href="https://github.com/thinx-pro/model-census">github.com/thinx-pro/model-census</a> · MIT
+  </footer>
+</main>
+
+<script type="module">
+import { extractFromText } from './lib/extract.js';
+import { FAMILY_LABEL, classifyModel } from './lib/catalog.js';
+import { lineage } from './lib/hf.js';
+
+const SAMPLE = `// llm.ts
+const client = new OpenAI({ baseURL: "https://api.deepseek.com/v1" });
+export const MAIN_MODEL = "deepseek-chat";
+export const FAST = "gpt-4o-mini";
+
+# router.py
+MODELS = {
+    "summarize": "openrouter/deepseek/deepseek-r1",
+    "cheap": "groq/deepseek-r1-distill-llama-70b",
+    "default": "openrouter/auto",
+}
+resp = litellm.completion(model="bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+local = "huihui-ai/DeepSeek-R1-Distill-Qwen-7B-abliterated-v2"
+
+# agents.yaml
+planner:
+  model: gemini-2.5-pro
+worker:
+  llm: qwen2.5-coder:7b
+`;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const label = (o) => FAMILY_LABEL[o] || o;
+const FLAG = { 'community-modified': 'safety training altered', 'third-party-upload': 'third-party upload', 'runtime-routing': 'picked at runtime', 'multi-vendor-host': 'multi-vendor host', 'undeclared-lineage': 'undeclared lineage' };
+
+function tab(which) {
+  for (const [t, p] of [['tab-code', 'pane-code'], ['tab-hf', 'pane-hf']]) {
+    const on = t === which;
+    $(t).setAttribute('aria-selected', on);
+    $(p).classList.toggle('hidden', !on);
+  }
+  try { localStorage.setItem('mc-tab', which); } catch {}
+}
+$('tab-code').onclick = () => tab('tab-code');
+$('tab-hf').onclick = () => tab('tab-hf');
+
+function scan() {
+  const text = $('code').value;
+  const deny = $('deny-deepseek').checked ? ['deepseek'] : [];
+  const map = new Map();
+  for (const f of extractFromText(text, 'pasted')) {
+    const k = f.kind + ':' + f.id.toLowerCase();
+    const g = map.get(k) || { ...f, lines: [] };
+    g.lines.push(f.line);
+    map.set(k, g);
+  }
+  const groups = [...map.values()];
+  for (const g of groups) g.denied = g.origins.some((o) => deny.includes(o));
+  const counts = {};
+  for (const g of groups) for (const o of g.origins) counts[o] = (counts[o] || 0) + 1;
+  const order = Object.entries(counts).sort((a, b) => (a[0] === 'unknown') - (b[0] === 'unknown') || b[1] - a[1]);
+  if (!groups.length) { $('code-out').innerHTML = '<p class="note" style="margin-top:16px">No model references found.</p>'; return; }
+  const denied = groups.filter((g) => g.denied).length;
+  $('code-out').innerHTML = `
+    <div class="summary">${order.map(([o, n]) => `<span class="chip ${deny.includes(o) ? 'bad' : ''}">${esc(label(o))} <b>${n}</b></span>`).join('')}</div>
+    ${deny.length ? `<div class="verdict ${denied ? 'bad' : 'ok'}">${denied ? `${denied} ${denied === 1 ? 'entry traces' : 'entries trace'} back to DeepSeek` : 'Nothing traces back to DeepSeek'}</div>` : ''}
+    <div class="tablewrap"><table>
+      <thead><tr><th>Kind</th><th>Id</th><th>Origin</th><th>Line</th><th>Notes</th></tr></thead>
+      <tbody>${groups.map((g) => `<tr class="${g.denied ? 'denied' : ''}">
+        <td>${esc(g.kind)}</td><td><code>${esc(g.id)}</code>${g.name ? `<div class="note">${esc(g.name)}</div>` : ''}</td>
+        <td>${g.origins.map((o) => esc(label(o))).join(' + ')}</td><td>${g.lines.join(', ')}</td>
+        <td>${(g.flags || []).map((f) => `<span class="flag">${esc(FLAG[f] || f)}</span>`).join('')}${(g.notes || []).map((n) => `<div class="note">${esc(n)}</div>`).join('')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+async function trace(id) {
+  id = id.trim().replace(/^https?:\/\/huggingface\.co\//, '').replace(/^hf\.co\//, '').replace(/:.*$/, '').replace(/\/+$/, '');
+  if (!/^[\w.-]+\/[\w.-]+$/.test(id)) { $('hf-out').innerHTML = '<p class="note">Enter an id like <code>org/model</code>.</p>'; return; }
+  $('hfid').value = id;
+  $('hf-out').innerHTML = '<p class="note">Walking base_model…</p>';
+  try {
+    const l = await lineage(id);
+    const hitDeepseek = l.origins.includes('deepseek');
+    const declared = l.chain.some((n) => classifyModel(n.id)?.origins.includes('deepseek'));
+    const items = l.chain.map((n) => {
+      const c = classifyModel(n.id);
+      const hit = c?.origins.includes('deepseek');
+      return `<li class="${n.depth ? 'child' : ''} ${hit ? 'hit' : ''}" style="--depth:${n.depth}">
+        <div class="id">${n.depth ? '↳ ' : ''}${esc(n.id)}</div>
+        <div class="meta">${n.error ? esc(n.error) : [n.architecture, n.license && 'license: ' + n.license].filter(Boolean).map(esc).join(' · ') || 'no metadata'}
+        ${c ? ' · ' + c.origins.map((o) => esc(label(o))).join(' + ') : ''}</div>
+        ${c?.flags?.length ? c.flags.map((f) => `<span class="flag">${esc(FLAG[f] || f)}</span>`).join('') : ''}
+      </li>`;
+    }).join('');
+    const fp = l.fingerprints.includes('deepseek');
+    $('hf-out').innerHTML = `
+      <div class="summary">${l.origins.filter((o) => o !== 'unknown').map((o) => `<span class="chip ${o === 'deepseek' ? 'bad' : ''}">${esc(label(o))}</span>`).join('') || '<span class="chip">origin not recognised</span>'}</div>
+      <div class="verdict ${hitDeepseek ? 'bad' : 'ok'}">${hitDeepseek ? 'Lineage reaches DeepSeek' : 'No DeepSeek in the declared lineage or tokenizer'}${fp && !declared ? ' (tokenizer only: not declared in metadata)' : ''}</div>
+      <ul class="tree">${items}</ul>
+      ${fp ? '<p class="note">Tokenizer contains DeepSeek special tokens (&lt;｜begin▁of▁sentence｜&gt;).</p>' : ''}
+      ${l.gaps.length ? `<p class="note">Gaps: ${l.gaps.map(esc).join('; ')}</p>` : ''}`;
+  } catch (e) {
+    $('hf-out').innerHTML = `<p class="note">Could not reach the Hugging Face API (${esc(e.message)}).</p>`;
+  }
+}
+
+$('code').value = SAMPLE;
+$('code').addEventListener('input', scan);
+$('deny-deepseek').addEventListener('change', scan);
+$('trace').onclick = () => trace($('hfid').value);
+$('hfid').addEventListener('keydown', (e) => { if (e.key === 'Enter') trace($('hfid').value); });
+for (const b of document.querySelectorAll('[data-id]')) b.onclick = () => trace(b.dataset.id);
+scan();
+const q = new URLSearchParams(location.search).get('model');
+let saved = null;
+try { saved = localStorage.getItem('mc-tab'); } catch {}
+if (q) { tab('tab-hf'); trace(q); } else if (saved === 'tab-hf') tab('tab-hf');
+</script>
+</body>
+</html>

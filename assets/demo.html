@@ -1,0 +1,65 @@
+<!doctype html><meta charset="utf-8"><style>
+body{margin:0;background:#0d1117}
+.win{margin:24px;border-radius:10px;background:#161b22;box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;width:max-content}
+.bar{height:30px;background:#21262d;display:flex;align-items:center;padding-left:12px;gap:8px}
+.bar i{width:12px;height:12px;border-radius:50%;display:inline-block}
+pre{margin:0;padding:16px 20px 20px;color:#e6edf3;font:13px/1.5 "SF Mono",Menlo,Consolas,monospace;white-space:pre}
+</style><div class="win"><div class="bar"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div><pre><span style="color:#8b949e">~/my-saas $ npx github:thinx-pro/model-census --deny deepseek      # demo project</span>
+<span style="font-weight:700">model-census</span> <span style="opacity:.55">0.1.0</span>  <span style="opacity:.55">.</span>  <span style="opacity:.55">7 files · 9 ms</span>
+
+<span style="font-weight:700">ORIGIN                ENTRIES  REFS   SEEN AS</span>
+<span style="color:#ff6b6b">DeepSeek              7        7      model, endpoint, package  ✖ denied</span>
+Anthropic             3        3      model, package
+OpenAI                3        3      model, package
+Qwen (Alibaba)        2        2      model
+Google                1        1      model
+Meta                  1        1      model
+Moonshot (Kimi)       1        1      model
+<span style="color:#f3f99d">Unknown               3        3      router, endpoint, env-var</span>
+
+<span style="font-weight:700">Model ids in code and config</span>
+ <span style="color:#5af78e">·</span> bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0   Anthropic                   <span style="opacity:.55">src/router.py:7</span>
+ <span style="color:#5af78e">·</span> claude-sonnet-4-5                                      Anthropic                   <span style="opacity:.55">src/llm.ts:6</span>
+ <span style="color:#ff6b6b">✖</span> deepseek-chat                                          DeepSeek                    <span style="opacity:.55">src/llm.ts:4</span>
+ <span style="color:#5af78e">·</span> gemini-2.5-pro                                         Google                      <span style="opacity:.55">config/agents.yaml:2</span>
+ <span style="color:#5af78e">·</span> gpt-4o-mini                                            OpenAI                      <span style="opacity:.55">src/llm.ts:5</span>
+ <span style="color:#ff6b6b">✖</span> groq/deepseek-r1-distill-llama-70b                     DeepSeek + Meta             <span style="opacity:.55">src/router.py:4</span>
+     <span style="opacity:.55">DeepSeek R1 distilled into Llama 3 weights (DeepSeek-R1 model card)</span>
+ <span style="color:#ff6b6b">✖</span> huihui-ai/DeepSeek-R1-Distill-Qwen-7B-abliterated-v2   DeepSeek + Qwen (Alibaba)   <span style="opacity:.55">src/router.py:8</span>
+     <span style="color:#f3f99d">community-modified, third-party-upload</span>
+     <span style="opacity:.55">DeepSeek R1 distilled into Qwen2.5 weights (DeepSeek-R1 model card)</span>
+ <span style="color:#5af78e">·</span> moonshot-v1-8k                                         Moonshot (Kimi)             <span style="opacity:.55">.env.example:1</span>
+ <span style="color:#5af78e">·</span> o3                                                     OpenAI                      <span style="opacity:.55">config/agents.yaml:3</span>
+ <span style="color:#ff6b6b">✖</span> openrouter/deepseek/deepseek-r1                        DeepSeek                    <span style="opacity:.55">src/router.py:3</span>
+ <span style="color:#5af78e">·</span> qwen2.5-coder:7b                                       Qwen (Alibaba)              <span style="opacity:.55">config/agents.yaml:5</span>
+
+<span style="font-weight:700">Routed at runtime (cannot be resolved statically)</span>
+ <span style="color:#f3f99d">!</span> openrouter/auto                                        Unknown                     <span style="opacity:.55">src/router.py:5</span>
+     <span style="color:#f3f99d">runtime-routing</span>
+     <span style="opacity:.55">Model is picked per request by the router; a static scan cannot tell which.</span>
+
+<span style="font-weight:700">API endpoints</span>
+ <span style="color:#ff6b6b">✖</span> api.deepseek.com (DeepSeek API)                        DeepSeek                    <span style="opacity:.55">src/llm.ts:3</span>
+ <span style="color:#f3f99d">!</span> openrouter.ai (OpenRouter)                             Unknown                     <span style="opacity:.55">.env.example:2</span>
+     <span style="color:#f3f99d">multi-vendor-host</span>
+
+<span style="font-weight:700">Credential / base-URL variables</span>
+ <span style="color:#f3f99d">!</span> OPENAI_BASE_URL                                        Unknown                     <span style="opacity:.55">.env.example:2</span>
+     <span style="color:#f3f99d">multi-vendor-host</span>
+
+<span style="font-weight:700">SDK packages</span>
+ <span style="color:#ff6b6b">✖</span> @ai-sdk/deepseek                                       DeepSeek                    <span style="opacity:.55">package.json:5</span>
+ <span style="color:#5af78e">·</span> anthropic                                              Anthropic                   <span style="opacity:.55">requirements.txt:1</span>
+ <span style="color:#ff6b6b">✖</span> langchain-deepseek                                     DeepSeek                    <span style="opacity:.55">requirements.txt:2</span>
+ <span style="color:#5af78e">·</span> openai                                                 OpenAI                      <span style="opacity:.55">package.json:4</span>
+
+<span style="opacity:.55">Flags</span>
+<span style="opacity:.55">  community-modified: name says safety training was removed or altered (abliterated / uncensored)</span>
+<span style="opacity:.55">  third-party-upload: weights uploaded by someone other than the original vendor</span>
+<span style="opacity:.55">  runtime-routing: the router picks the model per request</span>
+<span style="opacity:.55">  multi-vendor-host: host serves many vendors; the model id decides</span>
+
+<span style="color:#ff6b6b"><span style="font-weight:700">✖ 7 entries trace back to denied origins (deepseek).</span></span>
+<span style="color:#f3f99d">3 entries have an origin a static scan cannot pin down (routers, multi-vendor hosts or SDKs).</span>
+<span style="opacity:.55">Tip: --online walks the Hugging Face base_model chain for hub ids.</span>
+</pre></div>
