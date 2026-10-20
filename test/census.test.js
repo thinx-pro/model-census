@@ -51,6 +51,7 @@ test('route prefixes do not count as authors', () => {
   assert.ok(h.flags.includes('community-modified'));
   assert.equal(parseId('bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0').org, 'anthropic');
   assert.ok(!classifyModel('gemini/gemini-2.5-pro').flags.includes('third-party-upload'));
+  assert.deepEqual(classifyModel('amazon/nova-pro'), { ...classifyModel('amazon/nova-pro'), origins: ['amazon'], flags: [] });
   assert.ok(!classifyModel('fireworks_ai/accounts/fireworks/models/deepseek-r1').flags.includes('third-party-upload'));
   assert.deepEqual(classifyModel('fireworks_ai/accounts/fireworks/models/deepseek-r1').origins, ['deepseek']);
   assert.equal(extractFromText(`from llama_index.embeddings.huggingface import X; m = "llama_index.embeddings.huggingface"`, 'a.py').length, 0);

@@ -40,6 +40,9 @@ export const ORG_FAMILY = {
   'z-ai': 'zhipu', minimaxai: 'minimax', minimax: 'minimax', 'x-ai': 'xai', xai: 'xai', cohereforai: 'cohere',
   coherelabs: 'cohere', cohere: 'cohere', microsoft: null, nvidia: null, 'ibm-granite': 'ibm',
   perplexity: 'perplexity', baidu: 'baidu', tencent: 'tencent', 'bytedance-seed': 'bytedance', '01-ai': '01ai',
+  // vendor slugs used by gateways such as Vercel AI Gateway ("amazon/nova-pro", "zai/glm-4.6")
+  amazon: 'amazon', zai: 'zhipu', inception: 'inception', ai21: 'ai21', ai21labs: 'ai21', ibm: 'ibm', bytedance: 'bytedance',
+  mistral: 'mistral', moonshot: 'moonshot',
 };
 
 // Models whose weights were built on another family's weights. Both families are reported.
