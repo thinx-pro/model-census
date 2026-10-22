@@ -4,6 +4,8 @@ import { existsSync, statSync } from 'node:fs';
 import { walk, scanFiles, scanGguf, scanLocal, enrichOnline } from '../src/scan.js';
 import { group, applyPolicy, renderText, renderJson, renderMarkdown, renderCycloneDx, VERSION } from '../src/report.js';
 import { FAMILIES } from '../src/catalog.js';
+import { scanCommits, summarizeCommits } from '../src/commits.js';
+import { deniedCommits, renderCommitsText, renderCommitsJson, renderCommitsMarkdown } from '../src/commits-report.js';
 
 const HELP = `model-census ${VERSION}
 Which AI models does this codebase reference, and where do they come from?
@@ -22,6 +24,10 @@ Options
                      and read GGUF headers for declared base models and tokenizer fingerprints
   --online           walk the declared base_model chain on Hugging Face for hub ids
                      (sends model ids only, to huggingface.co)
+  --commits          instead of scanning files, read git history: which commits credit an
+                     AI tool or model (Co-Authored-By trailers, tool signatures, agent accounts),
+                     grouped by the vendor whose weights were used. Works with --deny.
+  --since <date>     with --commits: only commits after this date (anything git accepts)
   --docs             include .md / .txt / .rst files (off by default)
   --exclude <list>   comma-separated path fragments to skip, e.g. test,fixtures
   --json             JSON output
@@ -46,6 +52,8 @@ function parseArgs(argv) {
     else if (a === '--local') o.local = true;
     else if (a === '--online') o.online = true;
     else if (a === '--docs') o.docs = true;
+    else if (a === '--commits') o.commits = true;
+    else if (a === '--since') o.since = val();
     else if (a === '--json') o.format = 'json';
     else if (a === '--md') o.format = 'md';
     else if (a === '--cyclonedx') o.format = 'cyclonedx';
@@ -65,6 +73,17 @@ async function main() {
   const root = resolve(o.dir);
   if (!existsSync(root)) { console.error(`model-census: ${o.dir} does not exist`); process.exit(2); }
   const t0 = Date.now();
+  if (o.commits) {
+    if (o.format === 'cyclonedx') { console.error('model-census: --cyclonedx is not available with --commits'); process.exit(2); }
+    let scan;
+    try { scan = scanCommits(root, { since: o.since }); } catch (e) { console.error(`model-census: ${e.message}`); process.exit(2); }
+    const summary = summarizeCommits(scan);
+    const denied = deniedCommits(scan, o.deny);
+    const ctx = { scan, summary, denied, deny: o.deny, root: o.dir, ms: Date.now() - t0, version: VERSION };
+    console.log({ text: renderCommitsText, json: renderCommitsJson, md: renderCommitsMarkdown }[o.format](ctx));
+    if (denied.length) process.exitCode = 1;
+    return;
+  }
   let findings = [];
   let fileCount = 0;
   if (statSync(root).isFile()) {

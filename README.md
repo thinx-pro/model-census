@@ -37,7 +37,44 @@ npx github:thinx-pro/model-census --deny deepseek
 
 # 3. include models on this machine and walk Hugging Face lineage
 npx github:thinx-pro/model-census --local --online
+
+# 4. (new in 0.2) which AI models are credited in the git history?
+npx github:thinx-pro/model-census --commits --deny deepseek
 ```
+
+## New in 0.2: which model wrote the code? (`--commits`)
+
+The DHS order's wording also covers products *"developed using"* DeepSeek, and the HN thread spent [500+ comments](https://news.ycombinator.com/item?id=50154244) on whether that includes code a model generated. Nobody knows yet how it will be read. But if a customer asks, the evidence you already have is in your git history: coding agents leave `Co-Authored-By` trailers, signatures and bot accounts.
+
+`--commits` reads commit metadata only (author, trailers, message footer, never diffs) and reports which tools and models are credited, grouped by the vendor whose weights were used. With `--deny`, it exits 1 if any commit credits a denied origin. Real output on [aider](https://github.com/Aider-AI/aider)'s own history (13,139 commits, run in 139 ms):
+
+```text
+model-census --commits  aider  (13,139 commits, 2023-04-03 → 2026-05-22, 139 ms)
+4,390 commits (33%) credit an AI tool or model; 67 name the model.
+
+By origin of the weights
+     4323  98%    tool only, model not stated
+       36  0.8%   OpenAI
+       30  0.7%   Google
+        1  0.0%   Anthropic
+
+By tool and model
+  commits  tool             model                              origin             first      → last
+     4323  aider            (model not stated)                 ?                  2023-05-09 → 2025-06-25
+       13  aider            vertex_ai/gemini-2.5-pro-exp-03-2… Google             2025-04-12 → 2025-04-12
+       10  aider            gemini/gemini-2.5-pro              Google             2025-06-25 → 2025-08-13
+        9  aider            openai/gpt-5.2                     OpenAI             2026-02-11 → 2026-02-11
+        …
+        1  Claude Code      claude-opus-4.6                    Anthropic          2026-02-16 → 2026-02-16
+
+OK — no commit credits a model from DeepSeek
+```
+
+What it recognises: model names in `Co-authored-by` / `Assisted-by` / `Generated-by` trailers (`Claude Opus 4.6 <noreply@anthropic.com>`, `aider (deepseek/deepseek-chat)`, `Qwen Code:qwen3-coder-plus`), tool signatures (`Generated with Claude Code`, aider's `(aider)` author suffix), and agent accounts (Codex, Copilot, Cursor Agent, Jules, Devin, Gemini CLI, OpenCode, Qwen Code, Kimi CLI, Amazon Q/Kiro). A tool's default vendor is used only when no model is named, and multi-vendor tools (Copilot, Cursor, aider, OpenCode, Devin) stay "model not stated" unless the trailer names one. Human co-authors are ignored.
+
+**How I checked it:** on aider (13,139 commits) and [opencode](https://github.com/sst/opencode) (28,029 commits; 405 attributed, 62 to Anthropic models by name), I hand-checked 40 randomly chosen attributions: 38 were right. The 2 wrong ones were people whose e-mail address contained "opencode"; a third pattern of the same kind (a username containing "devin") turned up while I was building it. All three are fixed and have regression tests, so the 38/40 is from before the fix. I also listed every Co-authored-by trailer the tool did *not* attribute in both repos (top 40 by count): all were people, CI accounts or review bots, so no AI tool was missed there.
+
+**What it cannot tell you:** a commit with no trailer is not evidence that a person wrote it. Most tools add trailers only when configured to, and people delete them. This is the evidence your history *declares*, which is what you can show a customer, not a detector of AI-written code. `--since 2026-01-01`, `--json` and `--md` work as usual.
 
 ## What it finds
 
@@ -122,3 +159,5 @@ MIT
 ### 中文说明
 
 model-census：扫描代码、配置、`.env` 和依赖清单，列出项目里引用了哪些 AI 模型、端点和 SDK，并按「权重来自谁」归类（包括蒸馏、微调的衍生模型，例如 `deepseek-r1-distill-llama-70b` 归为 DeepSeek + Meta）。`--deny deepseek` 在发现相关引用时以退出码 1 结束，可放进 CI；`--local` 列出本机 Ollama / Hugging Face 缓存 / LM Studio 里的模型并读取 GGUF 头部；`--online` 通过 Hugging Face 公共 API 追溯 `base_model` 链；`--cyclonedx` 输出 CycloneDX 1.6 清单。默认完全离线、零依赖：`npx github:thinx-pro/model-census`。网页版：https://thinx-pro.github.io/model-census/ 。它只找「引用」，不代表运行时真的调用了；是否落入某项政策的范围请咨询法务。
+
+**0.2 新增 `--commits`**：DHS 禁令里的「developed using」让问题扩展到「代码是不是用 DeepSeek 写的」。`--commits` 只读 git 提交的元数据（作者、Co-Authored-By 等 trailer、工具签名、Agent 账号，不读 diff），统计哪些提交署名了哪个 AI 工具或模型，并按「权重来自谁」归类；配合 `--deny deepseek` 命中即退出码 1。注意：没有 trailer 不代表是人写的，这只是历史里「自己声明」的证据。

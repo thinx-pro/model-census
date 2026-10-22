@@ -1,6 +1,6 @@
 {
   "name": "model-census",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Which AI models does this codebase reference, and where do their weights come from? Offline scan of code, config, SDKs and local models, with DeepSeek/derivative detection and CycloneDX 1.6 output.",
   "type": "module",
   "bin": {
@@ -13,7 +13,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/census.test.js"
+    "test": "node --test test/census.test.js test/commits.test.js"
   },
   "engines": {
     "node": ">=18"

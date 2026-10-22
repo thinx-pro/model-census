@@ -1,6 +1,6 @@
 import { FAMILY_LABEL } from './catalog.js';
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 
 const useColor = () => (process.env.FORCE_COLOR ? process.env.FORCE_COLOR !== '0' : process.stdout.isTTY && !process.env.NO_COLOR);
 const paint = (code) => (s) => (useColor() ? `\x1b[${code}m${s}\x1b[0m` : String(s));
