@@ -156,11 +156,3 @@ Privacy: nothing leaves your machine unless you pass `--online`, which sends mod
 ## License
 
 MIT
-
----
-
-### 中文说明
-
-model-census：扫描代码、配置、`.env` 和依赖清单，列出项目里引用了哪些 AI 模型、端点和 SDK，并按「权重来自谁」归类（包括蒸馏、微调的衍生模型，例如 `deepseek-r1-distill-llama-70b` 归为 DeepSeek + Meta）。`--deny deepseek` 在发现相关引用时以退出码 1 结束，可放进 CI；`--local` 列出本机 Ollama / Hugging Face 缓存 / LM Studio 里的模型并读取 GGUF 头部；`--online` 通过 Hugging Face 公共 API 追溯 `base_model` 链；`--cyclonedx` 输出 CycloneDX 1.6 清单。默认完全离线、零依赖：`npx github:thinx-pro/model-census`。网页版：https://thinx-pro.github.io/model-census/ 。它只找「引用」，不代表运行时真的调用了；是否落入某项政策的范围请咨询法务。
-
-**0.2 新增 `--commits`**：DHS 禁令里的「developed using」让问题扩展到「代码是不是用 DeepSeek 写的」。`--commits` 只读 git 提交的元数据（作者、Co-Authored-By 等 trailer、工具签名、Agent 账号，不读 diff），统计哪些提交署名了哪个 AI 工具或模型，并按「权重来自谁」归类；配合 `--deny deepseek` 命中即退出码 1。注意：没有 trailer 不代表是人写的，这只是历史里「自己声明」的证据。
