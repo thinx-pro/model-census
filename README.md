@@ -3,6 +3,9 @@
 **Which AI models does this codebase reference, and whose weights are they built on?**
 An offline scan of code, config, `.env` files and dependency manifests that maps every model id, API endpoint and SDK to the vendor behind it, including distilled and fine-tuned derivatives. One command, no install, no API key.
 
+<!-- agent-preflight -->
+> **Also a Claude Code skill.** `model-census` is part of [agent-preflight](https://github.com/thinx-pro/agent-preflight), 16 offline checks for coding agents: `/plugin marketplace add thinx-pro/agent-preflight` then `/plugin install model-census@agent-preflight`, and ask Claude in plain words.
+
 ![node >= 18](https://img.shields.io/badge/node-%3E%3D18-3c873a) ![dependencies: 0](https://img.shields.io/badge/dependencies-0-blue) ![output: CycloneDX 1.6](https://img.shields.io/badge/output-CycloneDX%201.6-6f42c1) ![license: MIT](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ```bash
